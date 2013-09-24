@@ -1,0 +1,5 @@
+D:\Devel\WatchDog\bin\Debug\WatchDog.dll
+D:\Devel\WatchDog\bin\Debug\WatchDog.pdb
+D:\Devel\WatchDog\obj\Debug\ResolveAssemblyReference.cache
+D:\Devel\WatchDog\obj\Debug\WatchDog.dll
+D:\Devel\WatchDog\obj\Debug\WatchDog.pdb

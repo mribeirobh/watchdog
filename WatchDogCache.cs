@@ -9,24 +9,34 @@ using RGiesecke.DllExport;
 using System.Threading;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Globalization;
 
-
+[assembly: CLSCompliant(true)]
 namespace WatchDogProcess
 {
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
-    public class WatchDogCache
+    public static class WatchDogCache
     {
+        //private WatchDogCache() { }
+
         static ManualResetEvent threadEvent = new ManualResetEvent(false);
-        static public Process p = null;
+        static private Process _watchdogProcessHandle;
+
+        public static Process WatchdogProcessHandle
+        {
+            get { return WatchDogCache._watchdogProcessHandle; }
+            //set { WatchDogCache._p = value; }
+        }
+
 
         public static string InitProcess(string parameters)
         {
             ProcessStartInfo psi = new ProcessStartInfo();
-            string dllReference = System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.FullyQualifiedName;
+            string dllReference = System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.FullyQualifiedName.ToString(CultureInfo.InvariantCulture);
             string function = "Start";
-            string arguments = String.Format("{0},{1} {2}", dllReference, function, parameters);
+            string arguments = String.Format(CultureInfo.InvariantCulture, "{0},{1} {2}", dllReference, function, parameters);
             psi.WindowStyle = ProcessWindowStyle.Hidden;
             psi.Arguments = arguments;
             psi.FileName = "Rundll32.exe";
@@ -34,10 +44,10 @@ namespace WatchDogProcess
             psi.UseShellExecute = false;
 
             //Start Process
-            p = new Process();
-            p.StartInfo = psi;
-            p.Start();
-            return p.ProcessName;
+            _watchdogProcessHandle = new Process();
+            _watchdogProcessHandle.StartInfo = psi;
+            _watchdogProcessHandle.Start();
+            return _watchdogProcessHandle.ProcessName;
         }
 
 
@@ -48,7 +58,6 @@ namespace WatchDogProcess
 
         static void RequestWeb(string url)
         {
-            string uri = url;
             var br = new WebBrowser();
             br.DocumentCompleted += browser_DocumentCompleted;
             br.Navigate(url);
@@ -62,11 +71,11 @@ namespace WatchDogProcess
         }
 
         [DllExport("Start", CallingConvention = CallingConvention.Cdecl)]
-        public static void Start(IntPtr HWND, IntPtr hinst, string Ref, int nCmdShow)
+        public static void Start(IntPtr hwnd, IntPtr hinst, string parameters, int nCmdShow)
         {
-            String[] param = Ref.Split(',');
+            String[] param = parameters.Split(',');
             string url = param[0].Trim();
-            int timeout = Convert.ToInt32(param[1]);
+            int timeout = Convert.ToInt32(param[1], CultureInfo.InvariantCulture);
             while (true)
             {
                 Thread t = new Thread(Monitoring);
